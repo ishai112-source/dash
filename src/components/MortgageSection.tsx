@@ -20,14 +20,25 @@ const formatCurrency = (v: number) =>
   new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(v);
 
 const generateProjection = (data: MortgageData) => {
+  const { balance, yearsRemaining, monthlyPayment, interestRate } = data;
+  if (balance <= 0 || yearsRemaining <= 0 || monthlyPayment <= 0) return [];
+
+  const r = interestRate / 100 / 12;
   const points = [];
-  const { balance, yearsRemaining, monthlyPayment } = data;
-  if (balance <= 0 || yearsRemaining <= 0) return [];
+  let remaining = balance;
 
   for (let year = 0; year <= yearsRemaining; year++) {
-    const remaining = Math.max(0, balance - (monthlyPayment * 12 * year));
     points.push({ year: `שנה ${year}`, balance: Math.round(remaining) });
     if (remaining <= 0) break;
+    for (let m = 0; m < 12 && remaining > 0; m++) {
+      if (r === 0) {
+        remaining = Math.max(0, remaining - monthlyPayment);
+      } else {
+        const interest = remaining * r;
+        const principal = monthlyPayment - interest;
+        remaining = Math.max(0, remaining - principal);
+      }
+    }
   }
   return points;
 };
@@ -58,8 +69,9 @@ const MortgageSection = ({ data, onChange }: MortgageSectionProps) => {
               <Input
                 type="number"
                 step={key === "interestRate" ? "0.1" : "1"}
+                min="0"
                 value={data[key] || ""}
-                onChange={(e) => onChange({ ...data, [key]: Number(e.target.value) })}
+                onChange={(e) => onChange({ ...data, [key]: Math.max(0, Number(e.target.value)) })}
               />
               {data[key] > 0 && key !== "interestRate" && key !== "yearsRemaining" && (
                 <p className="text-xs text-muted-foreground">{formatCurrency(data[key])}</p>

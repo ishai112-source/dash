@@ -18,7 +18,9 @@ interface Props {
 }
 
 const EmergencyFundSection = ({ data, onChange }: Props) => {
-  const progress = data.target > 0 ? Math.min(100, (data.balance / data.target) * 100) : 0;
+  const rawProgress = data.target > 0 ? (data.balance / data.target) * 100 : 0;
+  const progress = Math.min(100, rawProgress);
+  const goalReached = data.target > 0 && data.balance >= data.target;
 
   return (
     <Card className="border-border bg-card">
@@ -32,12 +34,12 @@ const EmergencyFundSection = ({ data, onChange }: Props) => {
         <div className="grid grid-cols-2 gap-4 max-w-md">
           <div className="space-y-2">
             <Label className="text-sm text-muted-foreground">יתרה נוכחית ₪</Label>
-            <Input type="number" value={data.balance || ""} onChange={(e) => onChange({ ...data, balance: Number(e.target.value) })} />
+            <Input type="number" min="0" value={data.balance || ""} onChange={(e) => onChange({ ...data, balance: Math.max(0, Number(e.target.value)) })} />
             {data.balance > 0 && <p className="text-xs text-muted-foreground">{formatCurrency(data.balance)}</p>}
           </div>
           <div className="space-y-2">
             <Label className="text-sm text-muted-foreground">יעד ₪</Label>
-            <Input type="number" value={data.target || ""} onChange={(e) => onChange({ ...data, target: Number(e.target.value) })} />
+            <Input type="number" min="0" value={data.target || ""} onChange={(e) => onChange({ ...data, target: Math.max(0, Number(e.target.value)) })} />
             {data.target > 0 && <p className="text-xs text-muted-foreground">{formatCurrency(data.target)}</p>}
           </div>
         </div>
@@ -48,7 +50,11 @@ const EmergencyFundSection = ({ data, onChange }: Props) => {
               <span>{formatCurrency(data.target)}</span>
             </div>
             <Progress value={progress} className="h-4" />
-            <p className="text-sm text-center text-muted-foreground">{progress.toFixed(0)}% מהיעד</p>
+            {goalReached ? (
+              <p className="text-sm text-center text-accent font-semibold">✓ יעד הושג! ({rawProgress.toFixed(0)}% מהיעד)</p>
+            ) : (
+              <p className="text-sm text-center text-muted-foreground">{progress.toFixed(0)}% מהיעד</p>
+            )}
           </div>
         )}
       </CardContent>

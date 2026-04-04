@@ -19,6 +19,7 @@ export interface FundEntry {
   annualReturn: number;
   monthlyDeposit: number;
   lastUpdated: string;
+  fundType?: string;
 }
 
 interface FundSectionProps {
@@ -27,6 +28,7 @@ interface FundSectionProps {
   entries: FundEntry[];
   onChange: (entries: FundEntry[]) => void;
   ownerOptions: { value: string; label: string }[];
+  defaultTaxRate?: number;
 }
 
 const formatCurrency = (v: number) =>
@@ -41,7 +43,7 @@ type ColumnDef = {
   step?: string;
 };
 
-const FundSection = ({ title, icon: Icon, entries, onChange, ownerOptions }: FundSectionProps) => {
+const FundSection = ({ title, icon: Icon, entries, onChange, ownerOptions, defaultTaxRate = 0.25 }: FundSectionProps) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const columns: ColumnDef[] = [
@@ -98,7 +100,7 @@ const FundSection = ({ title, icon: Icon, entries, onChange, ownerOptions }: Fun
         <Select value={value as string} onValueChange={(v) => updateEntry(entry.id, col.key, v)}>
           <SelectTrigger className={`h-8 ${col.width}`}><SelectValue /></SelectTrigger>
           <SelectContent>
-            {col.options!.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+            {(col.options ?? []).map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
           </SelectContent>
         </Select>
       );
@@ -108,9 +110,10 @@ const FundSection = ({ title, icon: Icon, entries, onChange, ownerOptions }: Fun
         className={`h-8 ${col.width}`}
         type={col.type === "date" ? "date" : col.type === "number" ? "number" : "text"}
         step={col.step}
+        min={col.type === "number" ? "0" : undefined}
         value={col.type === "number" ? ((value as number) || "") : (value as string)}
         placeholder={col.key === "investmentTrack" ? "לדוגמה: מסלול מניות" : undefined}
-        onChange={(e) => updateEntry(entry.id, col.key, col.type === "number" ? Number(e.target.value) : e.target.value)}
+        onChange={(e) => updateEntry(entry.id, col.key, col.type === "number" ? Math.max(0, Number(e.target.value)) : e.target.value)}
       />
     );
   };
@@ -177,6 +180,7 @@ const FundSection = ({ title, icon: Icon, entries, onChange, ownerOptions }: Fun
                             defaultAccumulationFee={entry.accumulationFee}
                             fundName={entry.investmentTrack}
                             managingCompany={entry.provider}
+                            taxRate={defaultTaxRate}
                           />
                         </div>
                       </TableCell>

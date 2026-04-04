@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
-import type { PensionEntry } from "./PensionTable";
+import type { FundEntry } from "./FundSection";
 
 interface PensionChartsProps {
-  entries: PensionEntry[];
+  entries: (FundEntry & { fundType?: string })[];
 }
 
 const COLORS = [
@@ -23,6 +23,7 @@ const PensionCharts = ({ entries }: PensionChartsProps) => {
   const byOwner = useMemo(() => {
     const map: Record<string, number> = {};
     entries.forEach((e) => {
+      if (!e.owner) return;
       map[e.owner] = (map[e.owner] || 0) + e.balance;
     });
     return Object.entries(map).map(([name, value]) => ({ name, value }));
@@ -31,12 +32,31 @@ const PensionCharts = ({ entries }: PensionChartsProps) => {
   const byType = useMemo(() => {
     const map: Record<string, number> = {};
     entries.forEach((e) => {
-      map[e.fundType] = (map[e.fundType] || 0) + e.balance;
+      const type = e.fundType || "אחר";
+      map[type] = (map[type] || 0) + e.balance;
     });
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [entries]);
 
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {["חלוקה לפי בעלים", "חלוקה לפי סוג קופה"].map((title) => (
+          <Card key={title} className="border-border bg-card">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <PieChartIcon className="h-5 w-5 text-primary" />
+                <CardTitle className="font-display text-xl">{title}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-16 text-sm">הוסף נתונים כדי לראות את הגרף</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
