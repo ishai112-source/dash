@@ -5,6 +5,7 @@ import PensionCharts from "@/components/PensionCharts";
 import MortgageSection, { MortgageData } from "@/components/MortgageSection";
 import ChildSavingsSection, { ChildSavingsData } from "@/components/ChildSavingsSection";
 import EmergencyFundSection, { EmergencyFundData } from "@/components/EmergencyFundSection";
+import MislakaSync from "@/components/MislakaSync";
 import { Wallet, GraduationCap, PiggyBank } from "lucide-react";
 
 const ADULT_OWNERS = [
@@ -102,6 +103,15 @@ const Index = () => {
         <header className="text-center space-y-2">
           <h1 className="text-3xl font-bold font-display">לוח בקרה פיננסי משפחת רוזנבאום</h1>
           <p className="text-muted-foreground">ניהול נכסים, פנסיה ומשכנתא במקום אחד</p>
+          <div className="flex justify-center pt-2">
+            <MislakaSync
+              onImport={(pension, study, gemel) => {
+                if (pension.length) setPensionEntries((prev) => [...prev, ...pension]);
+                if (study.length) setStudyEntries((prev) => [...prev, ...study]);
+                if (gemel.length) setGemelEntries((prev) => [...prev, ...gemel]);
+              }}
+            />
+          </div>
         </header>
 
         <SummaryCards
