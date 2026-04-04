@@ -58,10 +58,13 @@ const generateGrowthData = (current: number, monthly: number, startYear: number,
 };
 
 const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildData) => void }) => {
-  const bm = child.barMitzvah!;
+  const bm = child.barMitzvah;
+  if (!bm) return null;
   const now = new Date();
   const yearsRemaining = Math.max(0, (bm.targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  const progress = bm.target > 0 ? Math.min(100, (bm.balance / bm.target) * 100) : 0;
+  const rawProgress = bm.target > 0 ? (bm.balance / bm.target) * 100 : 0;
+  const progress = Math.min(100, rawProgress);
+  const goalReached = bm.target > 0 && bm.balance >= bm.target;
 
   return (
     <Card className="border-border bg-secondary">
@@ -72,11 +75,11 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
-            <Input type="number" className="h-8" value={bm.balance || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, balance: Number(e.target.value) } })} />
+            <Input type="number" min="0" className="h-8" value={bm.balance || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, balance: Math.max(0, Number(e.target.value)) } })} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
-            <Input type="number" className="h-8" value={bm.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: Number(e.target.value) } })} />
+            <Input type="number" min="0" className="h-8" value={bm.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
           </div>
         </div>
         <div className="space-y-2">
@@ -85,7 +88,11 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
             <span>{yearsRemaining.toFixed(1)} שנים נותרו</span>
           </div>
           <Progress value={progress} className="h-3" />
-          <p className="text-xs text-muted-foreground text-center">{progress.toFixed(0)}% מהיעד</p>
+          {goalReached ? (
+            <p className="text-xs text-accent font-semibold text-center">✓ יעד הושג! ({rawProgress.toFixed(0)}% מהיעד)</p>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center">{progress.toFixed(0)}% מהיעד</p>
+          )}
         </div>
         <CompoundInterestCalculator
           defaultOneTime={bm.balance}
@@ -112,11 +119,11 @@ const Age30Card = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildD
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
-            <Input type="number" className="h-8" value={a30.balance || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, balance: Number(e.target.value) } })} />
+            <Input type="number" min="0" className="h-8" value={a30.balance || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, balance: Math.max(0, Number(e.target.value)) } })} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
-            <Input type="number" className="h-8" value={a30.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, monthlyDeposit: Number(e.target.value) } })} />
+            <Input type="number" min="0" className="h-8" value={a30.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">

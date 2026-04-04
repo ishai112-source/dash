@@ -13,13 +13,12 @@ interface CompoundInterestCalculatorProps {
   defaultRate?: number;
   defaultYears?: number;
   defaultAccumulationFee?: number;
+  taxRate?: number;
   fundName?: string;
   fundNumber?: string;
   managingCompany?: string;
   onFundInfoChange?: (info: { fundName: string; fundNumber: string; managingCompany: string }) => void;
 }
-
-const TAX_RATE = 0.25;
 
 const CompoundInterestCalculator = ({
   defaultOneTime = 0,
@@ -27,6 +26,7 @@ const CompoundInterestCalculator = ({
   defaultRate = 6,
   defaultYears = 10,
   defaultAccumulationFee = 0,
+  taxRate = 0.25,
   fundName = "",
   fundNumber = "",
   managingCompany = "",
@@ -52,7 +52,7 @@ const CompoundInterestCalculator = ({
 
   const totalDeposits = oneTime + monthly * years * 12;
   const profitBeforeTax = Math.max(0, totalBeforeTax - totalDeposits);
-  const taxAmount = Math.round(profitBeforeTax * TAX_RATE);
+  const taxAmount = Math.round(profitBeforeTax * taxRate);
   const profitAfterTax = profitBeforeTax - taxAmount;
   const totalAfterTax = totalDeposits + profitAfterTax;
 
@@ -136,7 +136,7 @@ const CompoundInterestCalculator = ({
           <p className="text-sm text-muted-foreground leading-relaxed bg-card rounded-lg p-3 border border-border">
             ההשקעה ההתחלתית שלך על סך {formatCurrency(oneTime)} יחד עם ההפקדות החודשיות שלך על סך {formatCurrency(monthly)} עם תשואה שנתית של {rate}% תהיה שווה בעתיד{" "}
             <span className="text-foreground font-bold">{formatCurrency(totalBeforeTax)}</span> לאחר {years} שנים של ריבית דריבית
-            (או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון)
+            (או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון של {(taxRate * 100).toFixed(0)}%)
           </p>
         </div>
       </CollapsibleContent>
