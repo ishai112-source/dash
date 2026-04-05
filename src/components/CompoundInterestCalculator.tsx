@@ -146,7 +146,7 @@ const CompoundInterestCalculator = ({
           <p className="text-sm text-muted-foreground leading-relaxed bg-card rounded-lg p-3 border border-border">
             מה שהופקד עד כה ({formatCurrency(oneTime)}) יחד עם ההפקדות החודשיות ({formatCurrency(monthly)}) עם תשואה שנתית של {rate}% יהיה שווה בעתיד{" "}
             <span className="text-foreground font-bold">{formatCurrency(totalBeforeTax)}</span> לאחר {years} שנים של ריבית דריבית
-            (או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון של {(taxRate * 100).toFixed(0)}%)
+            {"("}או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון של {(taxRate * 100).toFixed(0)}%{")"}
           </p>
         </div>
   );
