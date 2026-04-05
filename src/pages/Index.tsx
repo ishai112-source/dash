@@ -14,7 +14,7 @@ const ADULT_OWNERS = [
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DATA_VERSION = "6";
+const DATA_VERSION = "7";
 
 // נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
 const DEFAULT_PENSION: FundEntry[] = [
@@ -33,20 +33,83 @@ const DEFAULT_PENSION: FundEntry[] = [
   },
 ];
 
+// נתוני ישי ממיטב — 5 חשבונות מתקופות עבודה שונות (SwiftNess 17/03/2026)
+// סה"כ: 75,600 + 30,234 + 27,278 + 7,022 + 23,349 = 163,483
 const DEFAULT_STUDY: FundEntry[] = [
   {
+    // תקופת עבודה ראשונה — פתוח מרץ 2017, פטור ממס מ-מרץ 2023
     id: "mitav-yishai-1",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
     investmentTrack: "מיטב השתלמות מניות סחיר",
-    balance: 163485,
+    balance: 75600,
     depositFee: 0,
-    accumulationFee: 0.80,
+    accumulationFee: 0.08,
+    annualReturn: 2.39,
+    monthlyDeposit: 0,
+    lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+    openingDate: "2017-03-01",
+  },
+  {
+    // תקופת עבודה שנייה — פתוח מרץ 2019, פטור ממס מ-מרץ 2025
+    id: "mitav-yishai-2",
+    owner: "ישי",
+    provider: "מיטב גמל ופנסיה",
+    investmentTrack: "מיטב השתלמות מניות סחיר",
+    balance: 30234,
+    depositFee: 0,
+    accumulationFee: 0.08,
+    annualReturn: 2.39,
+    monthlyDeposit: 0,
+    lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+    openingDate: "2019-03-01",
+  },
+  {
+    // תקופת עבודה שלישית — פתוח יולי 2021, פטור ממס מ-יולי 2027
+    id: "mitav-yishai-3",
+    owner: "ישי",
+    provider: "מיטב גמל ופנסיה",
+    investmentTrack: "מיטב השתלמות מניות סחיר",
+    balance: 27278,
+    depositFee: 0,
+    accumulationFee: 0.08,
+    annualReturn: 2.39,
+    monthlyDeposit: 0,
+    lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+    openingDate: "2021-07-01",
+  },
+  {
+    // תקופת עבודה רביעית — פתוח נובמבר 2022, פטור ממס מ-נובמבר 2028
+    id: "mitav-yishai-4",
+    owner: "ישי",
+    provider: "מיטב גמל ופנסיה",
+    investmentTrack: "מיטב השתלמות מניות סחיר",
+    balance: 7022,
+    depositFee: 0,
+    accumulationFee: 0.08,
+    annualReturn: 2.39,
+    monthlyDeposit: 0,
+    lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+    openingDate: "2022-11-01",
+  },
+  {
+    // חשבון פעיל — מעסיק נוכחי, פתוח מרץ 2025, פטור ממס מ-מרץ 2031
+    id: "mitav-yishai-5",
+    owner: "ישי",
+    provider: "מיטב גמל ופנסיה",
+    investmentTrack: "מיטב השתלמות מניות סחיר",
+    balance: 23349,
+    depositFee: 0,
+    accumulationFee: 0.08,
     annualReturn: 2.39,
     monthlyDeposit: 2000,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
-    openingDate: "2019-01-01",
+    openingDate: "2025-03-01",
   },
 ];
 
