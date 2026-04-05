@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import FormattedNumberInput from "@/components/ui/FormattedNumberInput";
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(v);
@@ -55,6 +56,9 @@ const CompoundInterestCalculator = ({
   const taxAmount = Math.round(profitBeforeTax * taxRate);
   const profitAfterTax = profitBeforeTax - taxAmount;
   const totalAfterTax = totalDeposits + profitAfterTax;
+  const totalReturnPct = oneTime > 0
+    ? ((totalBeforeTax - oneTime) / oneTime * 100).toFixed(1)
+    : null;
 
   const handleFundInfo = (field: string, value: string) => {
     const updated = { fundName: name, fundNumber: number, managingCompany: company, [field]: value };
@@ -91,12 +95,12 @@ const CompoundInterestCalculator = ({
           {/* Calculator Inputs */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">הפקדה חד פעמית ₪</Label>
-              <Input type="number" className="h-8" value={oneTime || ""} onChange={(e) => setOneTime(Number(e.target.value))} />
+              <Label className="text-xs text-muted-foreground">מה שהופקד עד כה ₪</Label>
+              <FormattedNumberInput className="h-8" value={oneTime} onChange={setOneTime} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
-              <Input type="number" className="h-8" value={monthly || ""} onChange={(e) => setMonthly(Number(e.target.value))} />
+              <FormattedNumberInput className="h-8" value={monthly} onChange={setMonthly} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">תשואה שנתית %</Label>
@@ -113,7 +117,7 @@ const CompoundInterestCalculator = ({
           </div>
 
           {/* Results */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="bg-card rounded-lg p-3 border border-border">
               <p className="text-xs text-muted-foreground">הסכום הכולל לפני מס</p>
               <p className="text-lg font-bold text-foreground">{formatCurrency(totalBeforeTax)}</p>
@@ -123,18 +127,28 @@ const CompoundInterestCalculator = ({
               <p className="text-lg font-bold text-primary">{formatCurrency(totalAfterTax)}</p>
             </div>
             <div className="bg-card rounded-lg p-3 border border-border">
-              <p className="text-xs text-muted-foreground">הרווח לפני מס</p>
+              <p className="text-xs text-muted-foreground">רווח לפני מס</p>
               <p className="text-lg font-bold text-foreground">{formatCurrency(profitBeforeTax)}</p>
             </div>
             <div className="bg-card rounded-lg p-3 border border-border">
-              <p className="text-xs text-muted-foreground">הרווח אחרי מס</p>
+              <p className="text-xs text-muted-foreground">רווח אחרי מס</p>
               <p className="text-lg font-bold text-primary">{formatCurrency(profitAfterTax)}</p>
             </div>
+            <div className="bg-card rounded-lg p-3 border border-border">
+              <p className="text-xs text-muted-foreground">תשואה שנתית מוגדרת</p>
+              <p className="text-lg font-bold text-foreground">{rate}%</p>
+            </div>
+            {totalReturnPct !== null && (
+              <div className="bg-card rounded-lg p-3 border border-border">
+                <p className="text-xs text-muted-foreground">תשואה כוללת על מה שהופקד</p>
+                <p className="text-lg font-bold text-foreground">{totalReturnPct}%</p>
+              </div>
+            )}
           </div>
 
           {/* Summary Text */}
           <p className="text-sm text-muted-foreground leading-relaxed bg-card rounded-lg p-3 border border-border">
-            ההשקעה ההתחלתית שלך על סך {formatCurrency(oneTime)} יחד עם ההפקדות החודשיות שלך על סך {formatCurrency(monthly)} עם תשואה שנתית של {rate}% תהיה שווה בעתיד{" "}
+            מה שהופקד עד כה ({formatCurrency(oneTime)}) יחד עם ההפקדות החודשיות ({formatCurrency(monthly)}) עם תשואה שנתית של {rate}% יהיה שווה בעתיד{" "}
             <span className="text-foreground font-bold">{formatCurrency(totalBeforeTax)}</span> לאחר {years} שנים של ריבית דריבית
             (או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון של {(taxRate * 100).toFixed(0)}%)
           </p>

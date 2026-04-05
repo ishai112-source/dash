@@ -9,6 +9,7 @@ import {
   ResponsiveContainer, Legend,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
+import FormattedNumberInput from "@/components/ui/FormattedNumberInput";
 
 export interface MortgageTrack {
   id: string;
@@ -168,30 +169,30 @@ const MortgageSection = ({ data, onChange }: Props) => {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {(
-                  [
-                    { key: "balance", label: "יתרה ₪" },
-                    { key: "monthlyPayment", label: "תשלום חודשי ₪" },
-                    { key: "interestRate", label: "ריבית %" },
-                    { key: "yearsRemaining", label: "שנים שנותרו" },
-                  ] as const
-                ).map(({ key, label }) => (
-                  <div key={key} className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{label}</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step={key === "interestRate" ? "0.01" : "1"}
-                      value={track[key] || ""}
-                      onChange={(e) =>
-                        updateTrack(track.id, key, Math.max(0, Number(e.target.value)))
-                      }
-                    />
-                    {track[key] > 0 && (key === "balance" || key === "monthlyPayment") && (
-                      <p className="text-xs text-muted-foreground">{formatCurrency(track[key])}</p>
-                    )}
-                  </div>
-                ))}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">יתרה ₪</Label>
+                  <FormattedNumberInput value={track.balance} onChange={(v) => updateTrack(track.id, "balance", v)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">תשלום חודשי ₪</Label>
+                  <FormattedNumberInput value={track.monthlyPayment} onChange={(v) => updateTrack(track.id, "monthlyPayment", v)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">ריבית %</Label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={track.interestRate || ""}
+                    onChange={(e) => updateTrack(track.id, "interestRate", Math.max(0, Number(e.target.value)))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">שנים שנותרו</Label>
+                  <Input
+                    type="number" min="0"
+                    value={track.yearsRemaining || ""}
+                    onChange={(e) => updateTrack(track.id, "yearsRemaining", Math.max(0, Number(e.target.value)))}
+                  />
+                </div>
               </div>
             </div>
           ))}
@@ -310,13 +311,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">עלות מחזור ₪</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={refiCosts || ""}
-                      onChange={(e) => setRefiCosts(Number(e.target.value))}
-                    />
-                    {refiCosts > 0 && <p className="text-xs text-muted-foreground">{formatCurrency(refiCosts)}</p>}
+                    <FormattedNumberInput value={refiCosts} onChange={setRefiCosts} />
                   </div>
                 </div>
 

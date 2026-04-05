@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Baby } from "lucide-react";
+import FormattedNumberInput from "@/components/ui/FormattedNumberInput";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import CompoundInterestCalculator from "./CompoundInterestCalculator";
 
@@ -99,13 +100,11 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
-            <Input type="number" min="0" className="h-8" value={bm.balance || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, balance: Math.max(0, Number(e.target.value)) } })} />
-            {bm.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(bm.balance)}</p>}
+            <FormattedNumberInput className="h-8" value={bm.balance} onChange={(v) => onUpdate({ ...child, barMitzvah: { ...bm, balance: v } })} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
-            <Input type="number" min="0" className="h-8" value={bm.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
-            {bm.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(bm.monthlyDeposit)}</p>}
+            <FormattedNumberInput className="h-8" value={bm.monthlyDeposit} onChange={(v) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: v } })} />
           </div>
         </div>
 
@@ -159,13 +158,11 @@ const Age30Card = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildD
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
-            <Input type="number" min="0" className="h-8" value={a30.balance || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, balance: Math.max(0, Number(e.target.value)) } })} />
-            {a30.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(a30.balance)}</p>}
+            <FormattedNumberInput className="h-8" value={a30.balance} onChange={(v) => onUpdate({ ...child, age30: { ...a30, balance: v } })} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
-            <Input type="number" min="0" className="h-8" value={a30.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
-            {a30.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(a30.monthlyDeposit)}</p>}
+            <FormattedNumberInput className="h-8" value={a30.monthlyDeposit} onChange={(v) => onUpdate({ ...child, age30: { ...a30, monthlyDeposit: v } })} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">

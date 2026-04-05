@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Wallet, Plus, Trash2, ChevronDown, ChevronRight, Settings2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import CompoundInterestCalculator from "./CompoundInterestCalculator";
+import FormattedNumberInput from "@/components/ui/FormattedNumberInput";
 import type { FundEntry } from "./FundSection";
 
 export interface OwnerConfig {
@@ -183,16 +184,10 @@ const OwnerFundTable = ({
                   <TableCell><Input className="h-7 w-32" value={entry.provider} onChange={(e) => onUpdate(entry.id, "provider", e.target.value)} /></TableCell>
                   <TableCell><Input className="h-7 w-44" value={entry.investmentTrack} onChange={(e) => onUpdate(entry.id, "investmentTrack", e.target.value)} /></TableCell>
                   <TableCell>
-                    <div className="space-y-0.5">
-                      <Input type="number" min="0" className="h-7 w-28" value={entry.balance || ""} onChange={(e) => onUpdate(entry.id, "balance", Math.max(0, Number(e.target.value)))} />
-                      {entry.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(entry.balance)}</p>}
-                    </div>
+                    <FormattedNumberInput className="h-7 w-28" value={entry.balance} onChange={(v) => onUpdate(entry.id, "balance", v)} />
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-0.5">
-                      <Input type="number" min="0" className="h-7 w-28" value={entry.monthlyDeposit || ""} onChange={(e) => onUpdate(entry.id, "monthlyDeposit", Math.max(0, Number(e.target.value)))} />
-                      {entry.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(entry.monthlyDeposit)}</p>}
-                    </div>
+                    <FormattedNumberInput className="h-7 w-28" value={entry.monthlyDeposit} onChange={(v) => onUpdate(entry.id, "monthlyDeposit", v)} />
                   </TableCell>
                   <TableCell><Input type="number" min="0" step="0.01" className="h-7 w-24" value={entry.accumulationFee || ""} onChange={(e) => onUpdate(entry.id, "accumulationFee", Math.max(0, Number(e.target.value)))} /></TableCell>
                   <TableCell><Input type="number" min="0" step="0.1" className="h-7 w-20" value={entry.annualReturn || ""} onChange={(e) => onUpdate(entry.id, "annualReturn", Math.max(0, Number(e.target.value)))} /></TableCell>
