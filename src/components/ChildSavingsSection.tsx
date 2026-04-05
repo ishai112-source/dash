@@ -100,10 +100,12 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
             <Input type="number" min="0" className="h-8" value={bm.balance || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, balance: Math.max(0, Number(e.target.value)) } })} />
+            {bm.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(bm.balance)}</p>}
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
             <Input type="number" min="0" className="h-8" value={bm.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
+            {bm.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(bm.monthlyDeposit)}</p>}
           </div>
         </div>
 
@@ -158,10 +160,12 @@ const Age30Card = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildD
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
             <Input type="number" min="0" className="h-8" value={a30.balance || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, balance: Math.max(0, Number(e.target.value)) } })} />
+            {a30.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(a30.balance)}</p>}
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">הפקדה חודשית ₪</Label>
             <Input type="number" min="0" className="h-8" value={a30.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, age30: { ...a30, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
+            {a30.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(a30.monthlyDeposit)}</p>}
           </div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
