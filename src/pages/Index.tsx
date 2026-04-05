@@ -37,11 +37,11 @@ const DEFAULT_PENSION: FundEntry[] = [
 // סה"כ: 75,600 + 30,234 + 27,278 + 7,022 + 23,349 = 163,483
 const DEFAULT_STUDY: FundEntry[] = [
   {
-    // תקופת עבודה ראשונה — פתוח מרץ 2017, פטור ממס מ-מרץ 2023
+    // תגלית (ישראל זכות מלידה) 2017–2019 — פטור ממס מ-מרץ 2023
     id: "mitav-yishai-1",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מיטב השתלמות מניות סחיר",
+    investmentTrack: "מניות סחיר — תגלית 2017–2019",
     balance: 75600,
     depositFee: 0,
     accumulationFee: 0.08,
@@ -52,11 +52,11 @@ const DEFAULT_STUDY: FundEntry[] = [
     openingDate: "2017-03-01",
   },
   {
-    // תקופת עבודה שנייה — פתוח מרץ 2019, פטור ממס מ-מרץ 2025
+    // תקופת עבודה — פתוח מרץ 2019, פטור ממס מ-מרץ 2025
     id: "mitav-yishai-2",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מיטב השתלמות מניות סחיר",
+    investmentTrack: "מניות סחיר — 2019",
     balance: 30234,
     depositFee: 0,
     accumulationFee: 0.08,
