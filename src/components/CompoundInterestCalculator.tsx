@@ -19,6 +19,7 @@ interface CompoundInterestCalculatorProps {
   fundNumber?: string;
   managingCompany?: string;
   onFundInfoChange?: (info: { fundName: string; fundNumber: string; managingCompany: string }) => void;
+  alwaysOpen?: boolean;
 }
 
 const CompoundInterestCalculator = ({
@@ -32,6 +33,7 @@ const CompoundInterestCalculator = ({
   fundNumber = "",
   managingCompany = "",
   onFundInfoChange,
+  alwaysOpen = false,
 }: CompoundInterestCalculatorProps) => {
   const [oneTime, setOneTime] = useState(defaultOneTime);
   const [monthly, setMonthly] = useState(defaultMonthly);
@@ -68,13 +70,7 @@ const CompoundInterestCalculator = ({
     onFundInfoChange?.(updated);
   };
 
-  return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer w-full py-2">
-        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-        <span className="font-medium">מחשבון ריבית דריבית</span>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
+  const content = (
         <div className="bg-muted/50 rounded-lg p-4 mt-2 space-y-4 border border-border">
           {/* Fund Info */}
           <div className="grid grid-cols-3 gap-3">
@@ -153,7 +149,17 @@ const CompoundInterestCalculator = ({
             (או <span className="text-primary font-bold">{formatCurrency(totalAfterTax)}</span> לאחר ניכוי מס רווחי הון של {(taxRate * 100).toFixed(0)}%)
           </p>
         </div>
-      </CollapsibleContent>
+  );
+
+  if (alwaysOpen) return content;
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors cursor-pointer w-full py-2">
+        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        <span className="font-medium">מחשבון ריבית דריבית</span>
+      </CollapsibleTrigger>
+      <CollapsibleContent>{content}</CollapsibleContent>
     </Collapsible>
   );
 };

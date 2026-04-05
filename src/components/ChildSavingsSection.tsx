@@ -15,12 +15,18 @@ interface BarMitzvahSaving {
   monthlyDeposit: number;
   target: number;
   targetDate: Date;
+  fundName?: string;
+  fundNumber?: string;
+  managingCompany?: string;
 }
 
 interface Age30Saving {
   balance: number;
   monthlyDeposit: number;
   targetYear: number;
+  fundName?: string;
+  fundNumber?: string;
+  managingCompany?: string;
 }
 
 export interface ChildData {
@@ -127,6 +133,11 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
           defaultOneTime={bm.balance}
           defaultMonthly={bm.monthlyDeposit}
           defaultYears={Math.ceil(yearsRemaining)}
+          fundName={bm.fundName ?? ""}
+          fundNumber={bm.fundNumber ?? ""}
+          managingCompany={bm.managingCompany ?? ""}
+          onFundInfoChange={(info) => onUpdate({ ...child, barMitzvah: { ...bm, ...info } })}
+          alwaysOpen
         />
       </CardContent>
     </Card>
@@ -196,6 +207,11 @@ const Age30Card = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildD
           defaultOneTime={a30.balance}
           defaultMonthly={a30.monthlyDeposit}
           defaultYears={yearsToTarget}
+          fundName={a30.fundName ?? ""}
+          fundNumber={a30.fundNumber ?? ""}
+          managingCompany={a30.managingCompany ?? ""}
+          onFundInfoChange={(info) => onUpdate({ ...child, age30: { ...a30, ...info } })}
+          alwaysOpen
         />
       </CardContent>
     </Card>
