@@ -1,51 +1,93 @@
 import { useState, useEffect } from "react";
 import SummaryCards from "@/components/SummaryCards";
-import FundSection, { FundEntry } from "@/components/FundSection";
+import { FundEntry } from "@/components/FundSection";
+import PensionSection, { OwnerConfig } from "@/components/PensionSection";
+import StudyFundSection from "@/components/StudyFundSection";
 import PensionCharts from "@/components/PensionCharts";
 import MortgageSection, { MortgageData } from "@/components/MortgageSection";
 import ChildSavingsSection, { ChildSavingsData } from "@/components/ChildSavingsSection";
 import EmergencyFundSection, { EmergencyFundData } from "@/components/EmergencyFundSection";
-import MislakaSync from "@/components/MislakaSync";
-import { Wallet, GraduationCap, PiggyBank } from "lucide-react";
-
 const ADULT_OWNERS = [
-  { value: "ישי", label: "ישי" },
-  { value: "מיכל", label: "מיכל" },
-];
-
-const GEMEL_OWNERS = [
   { value: "ישי", label: "ישי" },
   { value: "מיכל", label: "מיכל" },
 ];
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DEFAULT_MORTGAGE: MortgageData = { balance: 0, monthlyPayment: 0, interestRate: 0, yearsRemaining: 0 };
-const DEFAULT_EMERGENCY: EmergencyFundData = { balance: 0, target: 0 };
+const DATA_VERSION = "5";
+
+// נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
+const DEFAULT_PENSION: FundEntry[] = [
+  {
+    id: "menora-yishai-1",
+    owner: "ישי",
+    provider: "מנורה מבטחים פנסיה וגמל",
+    investmentTrack: "עוקב מדדי מניות",
+    balance: 642074,
+    depositFee: 0,
+    accumulationFee: 0.10,
+    annualReturn: 3.71,
+    monthlyDeposit: 2500,
+    lastUpdated: "2026-03-17",
+    fundType: "פנסיה",
+  },
+];
+
+const DEFAULT_STUDY: FundEntry[] = [
+  {
+    id: "mitav-yishai-1",
+    owner: "ישי",
+    provider: "מיטב גמל ופנסיה",
+    investmentTrack: "מיטב השתלמות מניות סחיר",
+    balance: 163485,
+    depositFee: 0,
+    accumulationFee: 0.80,
+    annualReturn: 2.39,
+    monthlyDeposit: 2000,
+    lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+  },
+];
+
+const DEFAULT_MORTGAGE: MortgageData = { tracks: [] };
+const DEFAULT_EMERGENCY: EmergencyFundData = { balance: 12567, target: 70000, monthlyDeposit: 600, monthlyExpenses: 14000 };
 const DEFAULT_CHILD_SAVINGS: ChildSavingsData = {
   children: [
     {
       name: "מתן",
       birthDate: new Date(2012, 4, 18),
-      age30: { balance: 0, monthlyDeposit: 200, targetYear: 2042 },
+      age30: { balance: 38601, monthlyDeposit: 200, targetYear: 2042 },
     },
     {
       name: "אורי",
       birthDate: new Date(2016, 3, 13),
-      barMitzvah: { balance: 0, monthlyDeposit: 0, target: 30000, targetDate: new Date(2029, 3, 1) },
-      age30: { balance: 0, monthlyDeposit: 200, targetYear: 2046 },
+      barMitzvah: { balance: 5479, monthlyDeposit: 462, target: 30000, targetDate: new Date(2029, 3, 1) },
+      age30: { balance: 29237, monthlyDeposit: 200, targetYear: 2046 },
     },
     {
       name: "דניאל",
       birthDate: new Date(2022, 3, 11),
-      barMitzvah: { balance: 0, monthlyDeposit: 0, target: 30000, targetDate: new Date(2035, 3, 1) },
-      age30: { balance: 0, monthlyDeposit: 200, targetYear: 2052 },
+      barMitzvah: { balance: 3028, monthlyDeposit: 240, target: 30000, targetDate: new Date(2035, 3, 1) },
+      age30: { balance: 5087, monthlyDeposit: 200, targetYear: 2052 },
     },
   ],
 };
 
+const DEFAULT_OWNER_CONFIGS: OwnerConfig[] = [
+  // מקדם קצבה לישי: נגזר מהחישוב של מנורה מבטחים עצמה — 2,918,941 ÷ 7,380 ≈ 395
+  // officialMonthlyPension: קצבה רשמית לפי מנורה (KITZVAT-HODSHIT-TZFUYA מה-XML)
+  { name: "ישי", birthYear: 1983, retirementAge: 67, annuityFactor: 395, officialMonthlyPension: 7380 },
+  // מקדם קצבה למיכל: ברירת מחדל לאישה גיל 65 — יש לעדכן לפי חישוב קרן הפנסיה שלה
+  { name: "מיכל", birthYear: 1986, retirementAge: 65, annuityFactor: 420 },
+];
+
+function isVersioned(): boolean {
+  return localStorage.getItem("dataVersion") === DATA_VERSION;
+}
+
 function loadJSON<T>(key: string, fallback: T): T {
   try {
+    if (!isVersioned()) return fallback;
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch {
@@ -55,6 +97,7 @@ function loadJSON<T>(key: string, fallback: T): T {
 
 function loadChildSavings(): ChildSavingsData {
   try {
+    if (!isVersioned()) return DEFAULT_CHILD_SAVINGS;
     const raw = localStorage.getItem("childSavings");
     if (!raw) return DEFAULT_CHILD_SAVINGS;
     const data = JSON.parse(raw);
@@ -73,19 +116,20 @@ function loadChildSavings(): ChildSavingsData {
 }
 
 const Index = () => {
-  const [pensionEntries, setPensionEntries] = useState<FundEntry[]>(() => loadJSON("pension", []));
-  const [studyEntries, setStudyEntries] = useState<FundEntry[]>(() => loadJSON("study", []));
-  const [gemelEntries, setGemelEntries] = useState<FundEntry[]>(() => loadJSON("gemel", []));
+  const [pensionEntries, setPensionEntries] = useState<FundEntry[]>(() => loadJSON("pension", DEFAULT_PENSION));
+  const [studyEntries, setStudyEntries] = useState<FundEntry[]>(() => loadJSON("study", DEFAULT_STUDY));
   const [mortgageData, setMortgageData] = useState<MortgageData>(() => loadJSON("mortgage", DEFAULT_MORTGAGE));
   const [childSavings, setChildSavings] = useState<ChildSavingsData>(loadChildSavings);
   const [emergencyFund, setEmergencyFund] = useState<EmergencyFundData>(() => loadJSON("emergency", DEFAULT_EMERGENCY));
+  const [ownerConfigs, setOwnerConfigs] = useState<OwnerConfig[]>(() => loadJSON("ownerConfigs", DEFAULT_OWNER_CONFIGS));
 
+  useEffect(() => { localStorage.setItem("dataVersion", DATA_VERSION); }, []);
   useEffect(() => { localStorage.setItem("pension", JSON.stringify(pensionEntries)); }, [pensionEntries]);
   useEffect(() => { localStorage.setItem("study", JSON.stringify(studyEntries)); }, [studyEntries]);
-  useEffect(() => { localStorage.setItem("gemel", JSON.stringify(gemelEntries)); }, [gemelEntries]);
   useEffect(() => { localStorage.setItem("mortgage", JSON.stringify(mortgageData)); }, [mortgageData]);
   useEffect(() => { localStorage.setItem("childSavings", JSON.stringify(childSavings)); }, [childSavings]);
   useEffect(() => { localStorage.setItem("emergency", JSON.stringify(emergencyFund)); }, [emergencyFund]);
+  useEffect(() => { localStorage.setItem("ownerConfigs", JSON.stringify(ownerConfigs)); }, [ownerConfigs]);
 
   const totalChildSavings = childSavings.children.reduce(
     (s, c) => s + (c.barMitzvah?.balance || 0) + c.age30.balance, 0
@@ -94,8 +138,9 @@ const Index = () => {
   const allEntries = [
     ...pensionEntries.map((e) => ({ ...e, fundType: "פנסיה" })),
     ...studyEntries.map((e) => ({ ...e, fundType: "קרן השתלמות" })),
-    ...gemelEntries.map((e) => ({ ...e, fundType: "קופת גמל" })),
   ];
+
+  const totalMortgageBalance = (mortgageData.tracks ?? []).reduce((s, t) => s + t.balance, 0);
 
   return (
     <div dir="rtl" className="min-h-screen bg-background text-foreground">
@@ -103,29 +148,32 @@ const Index = () => {
         <header className="text-center space-y-2">
           <h1 className="text-3xl font-bold font-display">לוח בקרה פיננסי משפחת רוזנבאום</h1>
           <p className="text-muted-foreground">ניהול נכסים, פנסיה ומשכנתא במקום אחד</p>
-          <div className="flex justify-center pt-2">
-            <MislakaSync
-              onImport={(pension, study, gemel) => {
-                if (pension.length) setPensionEntries((prev) => [...prev, ...pension]);
-                if (study.length) setStudyEntries((prev) => [...prev, ...study]);
-                if (gemel.length) setGemelEntries((prev) => [...prev, ...gemel]);
-              }}
-            />
-          </div>
         </header>
 
         <SummaryCards
           totalPension={sumBalance(pensionEntries)}
           totalStudyFunds={sumBalance(studyEntries)}
-          totalGemel={sumBalance(gemelEntries)}
           totalChildSavings={totalChildSavings}
           emergencyFund={emergencyFund.balance}
-          mortgageBalance={mortgageData.balance}
+          mortgageBalance={totalMortgageBalance}
         />
 
-        <FundSection title="פנסיה" icon={Wallet} entries={pensionEntries} onChange={setPensionEntries} ownerOptions={ADULT_OWNERS} defaultTaxRate={0.25} />
-        <FundSection title="קרנות השתלמות" icon={GraduationCap} entries={studyEntries} onChange={setStudyEntries} ownerOptions={ADULT_OWNERS} defaultTaxRate={0} />
-        <FundSection title="קופות גמל" icon={PiggyBank} entries={gemelEntries} onChange={setGemelEntries} ownerOptions={GEMEL_OWNERS} defaultTaxRate={0.25} />
+        {/* פנסיה — עם הפרדה לבעלים + קצבה צפויה */}
+        <PensionSection
+          pensionEntries={pensionEntries}
+          studyEntries={studyEntries}
+          onPensionChange={setPensionEntries}
+          ownerOptions={ADULT_OWNERS}
+          ownerConfigs={ownerConfigs}
+          onOwnerConfigsChange={setOwnerConfigs}
+        />
+
+        {/* קרנות השתלמות — עם הפרדה לבעלים + פטור ממס */}
+        <StudyFundSection
+          entries={studyEntries}
+          onChange={setStudyEntries}
+          ownerOptions={ADULT_OWNERS}
+        />
 
         <ChildSavingsSection data={childSavings} onChange={setChildSavings} />
         <EmergencyFundSection data={emergencyFund} onChange={setEmergencyFund} />

@@ -8,7 +8,7 @@ import { createTransaction, getTransactionStatus, fetchPensionData, MislakaPolic
 import type { FundEntry } from "@/components/FundSection";
 
 interface MislakaSyncProps {
-  onImport: (pension: FundEntry[], study: FundEntry[], gemel: FundEntry[]) => void;
+  onImport: (pension: FundEntry[], study: FundEntry[]) => void;
 }
 
 type Step = "idle" | "enter_id" | "waiting_sms" | "loading" | "success" | "error";
@@ -86,7 +86,7 @@ const MislakaSync = ({ onImport }: MislakaSyncProps) => {
       }
 
       setImportedCount(data.policies.length);
-      onImport(pension, study, gemel);
+      onImport(pension, study);
       setStep("success");
     } catch (e: any) {
       setError(e.message ?? "שגיאה במשיכת הנתונים");

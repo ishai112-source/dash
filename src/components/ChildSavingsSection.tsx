@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import { Baby } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import CompoundInterestCalculator from "./CompoundInterestCalculator";
@@ -34,6 +33,29 @@ export interface ChildSavingsData {
   children: ChildData[];
 }
 
+function monthsToGoal(balance: number, monthly: number, target: number, annualRate: number): number | null {
+  if (balance >= target) return 0;
+  if (monthly <= 0) return null;
+  const r = annualRate / 100 / 12;
+  if (r === 0) return Math.ceil((target - balance) / monthly);
+  const n = Math.log((target * r + monthly) / (balance * r + monthly)) / Math.log(1 + r);
+  return isFinite(n) && n > 0 ? Math.ceil(n) : null;
+}
+
+function monthsToDate(months: number): { date: string; duration: string } {
+  const d = new Date();
+  d.setMonth(d.getMonth() + months);
+  const date = d.toLocaleDateString("he-IL", { month: "long", year: "numeric" });
+  const years = Math.floor(months / 12);
+  const rem = months % 12;
+  const duration = years > 0 && rem > 0
+    ? `${years} שנ' ${rem} ח'`
+    : years > 0
+    ? `${years} שנים`
+    : `${rem} חודשים`;
+  return { date, duration };
+}
+
 const projectBalance = (current: number, monthly: number, years: number, rate: number) => {
   const r = rate / 100 / 12;
   let balance = current;
@@ -62,14 +84,16 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
   if (!bm) return null;
   const now = new Date();
   const yearsRemaining = Math.max(0, (bm.targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-  const rawProgress = bm.target > 0 ? (bm.balance / bm.target) * 100 : 0;
-  const progress = Math.min(100, rawProgress);
-  const goalReached = bm.target > 0 && bm.balance >= bm.target;
+  const bmYear = bm.targetDate.getFullYear();
+  const bmMonth = bm.targetDate.toLocaleDateString("he-IL", { month: "long" });
 
   return (
     <Card className="border-border bg-secondary">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-display">חיסכון בר מצווה</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-display">חיסכון בר מצווה</CardTitle>
+          <span className="text-xs text-muted-foreground">{bmMonth} {bmYear} · עוד {yearsRemaining.toFixed(1)} שנים</span>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
@@ -82,17 +106,21 @@ const BarMitzvahCard = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: C
             <Input type="number" min="0" className="h-8" value={bm.monthlyDeposit || ""} onChange={(e) => onUpdate({ ...child, barMitzvah: { ...bm, monthlyDeposit: Math.max(0, Number(e.target.value)) } })} />
           </div>
         </div>
-        <div className="space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>יעד: {formatCurrency(bm.target)}</span>
-            <span>{yearsRemaining.toFixed(1)} שנים נותרו</span>
+
+        {/* צפי ריאלי ביום הבר מצווה */}
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">צפי ריאלי ביום הבר מצווה:</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[4, 6, 8].map((rate) => {
+              const projected = projectBalance(bm.balance, bm.monthlyDeposit, yearsRemaining, rate);
+              return (
+                <div key={rate} className="bg-muted rounded-lg p-2 text-center">
+                  <p className="text-xs text-muted-foreground">תשואה {rate}%</p>
+                  <p className="text-sm font-bold text-foreground">{formatCurrency(projected)}</p>
+                </div>
+              );
+            })}
           </div>
-          <Progress value={progress} className="h-3" />
-          {goalReached ? (
-            <p className="text-xs text-accent font-semibold text-center">✓ יעד הושג! ({rawProgress.toFixed(0)}% מהיעד)</p>
-          ) : (
-            <p className="text-xs text-muted-foreground text-center">{progress.toFixed(0)}% מהיעד</p>
-          )}
         </div>
         <CompoundInterestCalculator
           defaultOneTime={bm.balance}
@@ -116,6 +144,16 @@ const Age30Card = ({ child, onUpdate }: { child: ChildData; onUpdate: (c: ChildD
         <CardTitle className="text-base font-display">חיסכון עד גיל 30</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            יעד: שנת {a30.targetYear}
+          </p>
+          {yearsToTarget > 0 && (
+            <p className="text-xs font-semibold text-muted-foreground">
+              עוד {yearsToTarget} שנים
+            </p>
+          )}
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">יתרה נוכחית ₪</Label>
