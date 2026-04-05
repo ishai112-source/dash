@@ -316,6 +316,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
                       value={refiCosts || ""}
                       onChange={(e) => setRefiCosts(Number(e.target.value))}
                     />
+                    {refiCosts > 0 && <p className="text-xs text-muted-foreground">{formatCurrency(refiCosts)}</p>}
                   </div>
                 </div>
 
