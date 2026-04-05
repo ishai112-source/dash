@@ -52,11 +52,11 @@ const DEFAULT_STUDY: FundEntry[] = [
     openingDate: "2017-03-01",
   },
   {
-    // תקופת עבודה — פתוח מרץ 2019, פטור ממס מ-מרץ 2025
+    // טללים כנסים ואירועים 2019–2020 — פטור ממס מ-מרץ 2025
     id: "mitav-yishai-2",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מניות סחיר — 2019",
+    investmentTrack: "מניות סחיר — טללים 2019–2020",
     balance: 30234,
     depositFee: 0,
     accumulationFee: 0.08,
