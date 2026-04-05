@@ -14,7 +14,7 @@ const ADULT_OWNERS = [
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DATA_VERSION = "5";
+const DATA_VERSION = "6";
 
 // נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
 const DEFAULT_PENSION: FundEntry[] = [
@@ -46,6 +46,7 @@ const DEFAULT_STUDY: FundEntry[] = [
     monthlyDeposit: 2000,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
+    openingDate: "2019-01-01",
   },
 ];
 

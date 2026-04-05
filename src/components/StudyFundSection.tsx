@@ -120,8 +120,18 @@ const OwnerStudyTable = ({
                   </TableCell>
                   <TableCell><Input className="h-7 w-28" value={entry.provider} onChange={(e) => onUpdate(entry.id, "provider", e.target.value)} /></TableCell>
                   <TableCell><Input className="h-7 w-36" value={entry.investmentTrack} onChange={(e) => onUpdate(entry.id, "investmentTrack", e.target.value)} /></TableCell>
-                  <TableCell><Input type="number" min="0" className="h-7 w-24" value={entry.balance || ""} onChange={(e) => onUpdate(entry.id, "balance", Math.max(0, Number(e.target.value)))} /></TableCell>
-                  <TableCell><Input type="number" min="0" className="h-7 w-24" value={entry.monthlyDeposit || ""} onChange={(e) => onUpdate(entry.id, "monthlyDeposit", Math.max(0, Number(e.target.value)))} /></TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5">
+                      <Input type="number" min="0" className="h-7 w-24" value={entry.balance || ""} onChange={(e) => onUpdate(entry.id, "balance", Math.max(0, Number(e.target.value)))} />
+                      {entry.balance > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(entry.balance)}</p>}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5">
+                      <Input type="number" min="0" className="h-7 w-24" value={entry.monthlyDeposit || ""} onChange={(e) => onUpdate(entry.id, "monthlyDeposit", Math.max(0, Number(e.target.value)))} />
+                      {entry.monthlyDeposit > 0 && <p className="text-[10px] text-muted-foreground">{formatCurrency(entry.monthlyDeposit)}</p>}
+                    </div>
+                  </TableCell>
                   <TableCell><Input type="number" min="0" step="0.01" className="h-7 w-20" value={entry.accumulationFee || ""} onChange={(e) => onUpdate(entry.id, "accumulationFee", Math.max(0, Number(e.target.value)))} /></TableCell>
                   <TableCell><Input type="number" min="0" step="0.1" className="h-7 w-16" value={entry.annualReturn || ""} onChange={(e) => onUpdate(entry.id, "annualReturn", Math.max(0, Number(e.target.value)))} /></TableCell>
                   <TableCell><Input type="date" className="h-7 w-32" value={entry.openingDate ?? ""} onChange={(e) => onUpdate(entry.id, "openingDate", e.target.value)} /></TableCell>

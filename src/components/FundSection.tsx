@@ -20,6 +20,7 @@ export interface FundEntry {
   monthlyDeposit: number;
   lastUpdated: string;
   fundType?: string;
+  openingDate?: string;
 }
 
 interface FundSectionProps {
