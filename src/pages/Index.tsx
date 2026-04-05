@@ -67,11 +67,11 @@ const DEFAULT_STUDY: FundEntry[] = [
     openingDate: "2019-03-01",
   },
   {
-    // תקופת עבודה שלישית — פתוח יולי 2021, פטור ממס מ-יולי 2027
+    // בית יציב 2021–2022 — פטור ממס מ-יולי 2027
     id: "mitav-yishai-3",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מיטב השתלמות מניות סחיר",
+    investmentTrack: "מניות סחיר — בית יציב 2021–2022",
     balance: 27278,
     depositFee: 0,
     accumulationFee: 0.08,
@@ -82,11 +82,11 @@ const DEFAULT_STUDY: FundEntry[] = [
     openingDate: "2021-07-01",
   },
   {
-    // תקופת עבודה רביעית — פתוח נובמבר 2022, פטור ממס מ-נובמבר 2028
+    // מרכז לחינוך סייבר + ג'י הייצ' 2022–2025 — פטור ממס מ-נובמבר 2028
     id: "mitav-yishai-4",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מיטב השתלמות מניות סחיר",
+    investmentTrack: "מניות סחיר — סייבר/ג'י הייצ' 2022–2025",
     balance: 7022,
     depositFee: 0,
     accumulationFee: 0.08,
@@ -97,11 +97,11 @@ const DEFAULT_STUDY: FundEntry[] = [
     openingDate: "2022-11-01",
   },
   {
-    // חשבון פעיל — מעסיק נוכחי, פתוח מרץ 2025, פטור ממס מ-מרץ 2031
+    // פיסגה 2025–כיום (פעיל) — פטור ממס מ-מרץ 2031
     id: "mitav-yishai-5",
     owner: "ישי",
     provider: "מיטב גמל ופנסיה",
-    investmentTrack: "מיטב השתלמות מניות סחיר",
+    investmentTrack: "מניות סחיר — פיסגה 2025–כיום",
     balance: 23349,
     depositFee: 0,
     accumulationFee: 0.08,
