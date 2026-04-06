@@ -14,9 +14,10 @@ const ADULT_OWNERS = [
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DATA_VERSION = "7";
+const DATA_VERSION = "12";
 
 // נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
+// נתוני מיכל מאלטשול (דוח שנתי 31/12/2025)
 const DEFAULT_PENSION: FundEntry[] = [
   {
     id: "menora-yishai-1",
@@ -26,15 +27,31 @@ const DEFAULT_PENSION: FundEntry[] = [
     balance: 642074,
     depositFee: 0,
     accumulationFee: 0.10,
-    annualReturn: 3.71,
+    annualReturn: 6,
     monthlyDeposit: 2500,
     lastUpdated: "2026-03-17",
+    fundType: "פנסיה",
+  },
+  {
+    // פוליסה 043393610 — S&P 500 (עם חלק קטן מסלול 50) — הופעלה אפריל 2025
+    id: "altshul-michal-1",
+    owner: "מיכל",
+    provider: "אלטשול שחם פנסיה",
+    investmentTrack: "S&P 500",
+    balance: 230574,
+    depositFee: 1.20,
+    accumulationFee: 0.10,
+    annualReturn: 7,
+    monthlyDeposit: 3333,
+    lastUpdated: "2025-12-31",
     fundType: "פנסיה",
   },
 ];
 
 // נתוני ישי ממיטב — 5 חשבונות מתקופות עבודה שונות (SwiftNess 17/03/2026)
-// סה"כ: 75,600 + 30,234 + 27,278 + 7,022 + 23,349 = 163,483
+// סה"כ ישי: 75,600 + 30,234 + 27,278 + 7,022 + 23,349 = 163,483
+// נתוני מיכל מכלל + אלטשול (דוח שנתי 31/12/2025)
+// סה"כ מיכל: 46,597 + 13,878 + 13,617 = 74,092
 const DEFAULT_STUDY: FundEntry[] = [
   {
     // תגלית (ישראל זכות מלידה) 2017–2019 — פטור ממס מ-מרץ 2023
@@ -45,7 +62,7 @@ const DEFAULT_STUDY: FundEntry[] = [
     balance: 75600,
     depositFee: 0,
     accumulationFee: 0.08,
-    annualReturn: 2.39,
+    annualReturn: 6,
     monthlyDeposit: 0,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
@@ -60,7 +77,7 @@ const DEFAULT_STUDY: FundEntry[] = [
     balance: 30234,
     depositFee: 0,
     accumulationFee: 0.08,
-    annualReturn: 2.39,
+    annualReturn: 6,
     monthlyDeposit: 0,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
@@ -75,7 +92,7 @@ const DEFAULT_STUDY: FundEntry[] = [
     balance: 27278,
     depositFee: 0,
     accumulationFee: 0.08,
-    annualReturn: 2.39,
+    annualReturn: 6,
     monthlyDeposit: 0,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
@@ -90,7 +107,7 @@ const DEFAULT_STUDY: FundEntry[] = [
     balance: 7022,
     depositFee: 0,
     accumulationFee: 0.08,
-    annualReturn: 2.39,
+    annualReturn: 6,
     monthlyDeposit: 0,
     lastUpdated: "2026-03-17",
     fundType: "קרן השתלמות",
@@ -105,9 +122,54 @@ const DEFAULT_STUDY: FundEntry[] = [
     balance: 23349,
     depositFee: 0,
     accumulationFee: 0.08,
-    annualReturn: 2.39,
+    annualReturn: 6,
     monthlyDeposit: 2000,
     lastUpdated: "2026-03-17",
+    fundType: "קרן השתלמות",
+    openingDate: "2025-03-01",
+  },
+  {
+    // כלל חשבון 10403415 — פטורה ממס מ-31/01/2024 (6 שנים מ-01/01/2018)
+    id: "clal-michal-1",
+    owner: "מיכל",
+    provider: "כלל פנסיה וגמל",
+    investmentTrack: "S&P 500",
+    balance: 46597,
+    depositFee: 0,
+    accumulationFee: 0.48,
+    annualReturn: 7,
+    monthlyDeposit: 0,
+    lastUpdated: "2025-12-31",
+    fundType: "קרן השתלמות",
+    openingDate: "2018-01-01",
+  },
+  {
+    // כלל חשבון 10401987 — פטורה ממס מ-30/08/2029 (6 שנים מ-01/08/2023)
+    id: "clal-michal-2",
+    owner: "מיכל",
+    provider: "כלל פנסיה וגמל",
+    investmentTrack: "S&P 500",
+    balance: 13878,
+    depositFee: 0,
+    accumulationFee: 0.48,
+    annualReturn: 7,
+    monthlyDeposit: 0,
+    lastUpdated: "2025-12-31",
+    fundType: "קרן השתלמות",
+    openingDate: "2023-08-01",
+  },
+  {
+    // אלטשול חשבון 44445400 (פעיל) — פטורה ממס מ-31/03/2031 (6 שנים מ-01/03/2025)
+    id: "altshul-michal-study-1",
+    owner: "מיכל",
+    provider: "אלטשול שחם פנסיה",
+    investmentTrack: "S&P 500",
+    balance: 13617,
+    depositFee: 0,
+    accumulationFee: 0.66,
+    annualReturn: 7,
+    monthlyDeposit: 1571,
+    lastUpdated: "2025-12-31",
     fundType: "קרן השתלמות",
     openingDate: "2025-03-01",
   },
@@ -120,19 +182,56 @@ const DEFAULT_CHILD_SAVINGS: ChildSavingsData = {
     {
       name: "מתן",
       birthDate: new Date(2012, 4, 18),
-      age30: { balance: 38601, monthlyDeposit: 200, targetYear: 2042 },
+      age30: {
+        balance: 38023,
+        monthlyDeposit: 200,
+        targetYear: 2042,
+        fundName: "מור גמל להשקעה",
+        fundNumber: "233720",
+        managingCompany: "מור גמל ופנסיה",
+      },
     },
     {
       name: "אורי",
       birthDate: new Date(2016, 3, 13),
-      barMitzvah: { balance: 5479, monthlyDeposit: 462, target: 30000, targetDate: new Date(2029, 3, 1) },
-      age30: { balance: 29237, monthlyDeposit: 200, targetYear: 2046 },
+      barMitzvah: {
+        balance: 4417,
+        monthlyDeposit: 462,
+        target: 30000,
+        targetDate: new Date(2029, 3, 1),
+        fundName: "מור גמל להשקעה",
+        fundNumber: "1134961",
+        managingCompany: "מור גמל ופנסיה",
+      },
+      age30: {
+        balance: 28704,
+        monthlyDeposit: 200,
+        targetYear: 2046,
+        fundName: "מור גמל להשקעה",
+        fundNumber: "233685",
+        managingCompany: "מור גמל ופנסיה",
+      },
     },
     {
       name: "דניאל",
       birthDate: new Date(2022, 3, 11),
-      barMitzvah: { balance: 3028, monthlyDeposit: 240, target: 30000, targetDate: new Date(2035, 3, 1) },
-      age30: { balance: 5087, monthlyDeposit: 200, targetYear: 2052 },
+      barMitzvah: {
+        balance: 2406,
+        monthlyDeposit: 240,
+        target: 30000,
+        targetDate: new Date(2035, 3, 1),
+        fundName: "מור גמל להשקעה",
+        fundNumber: "1134985",
+        managingCompany: "מור גמל ופנסיה",
+      },
+      age30: {
+        balance: 4669,
+        monthlyDeposit: 200,
+        targetYear: 2052,
+        fundName: "מור גמל להשקעה",
+        fundNumber: "900761",
+        managingCompany: "מור גמל ופנסיה",
+      },
     },
   ],
 };
@@ -142,7 +241,8 @@ const DEFAULT_OWNER_CONFIGS: OwnerConfig[] = [
   // officialMonthlyPension: קצבה רשמית לפי מנורה (KITZVAT-HODSHIT-TZFUYA מה-XML)
   { name: "ישי", birthYear: 1983, retirementAge: 67, annuityFactor: 395, officialMonthlyPension: 7380 },
   // מקדם קצבה למיכל: ברירת מחדל לאישה גיל 65 — יש לעדכן לפי חישוב קרן הפנסיה שלה
-  { name: "מיכל", birthYear: 1986, retirementAge: 65, annuityFactor: 420 },
+  // officialMonthlyPension: קצבה רשמית לפי אלטשול (דוח שנתי 31/12/2025, צפי לגיל 67)
+  { name: "מיכל", birthYear: 1986, retirementAge: 65, annuityFactor: 420, officialMonthlyPension: 2822 },
 ];
 
 function isVersioned(): boolean {
