@@ -109,6 +109,18 @@ function buildChartData(tracks: MortgageTrack[]) {
   return points;
 }
 
+// Tick מותאם אישית לציר X — שתי שורות: מספר שנה + שנה קלנדרית
+const THIS_YEAR = new Date().getFullYear();
+const DualYearTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
+  const n = parseInt(payload?.value ?? "0");
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={13} textAnchor="middle" fontSize={10} fill="hsl(215 20% 55%)">{n}</text>
+      <text x={0} y={0} dy={25} textAnchor="middle" fontSize={9} fill="hsl(262 80% 55%)">{THIS_YEAR + n}</text>
+    </g>
+  );
+};
+
 const MortgageSection = ({ data, onChange }: Props) => {
   const [showRefi, setShowRefi] = useState(false);
   const [refiRate, setRefiRate] = useState(4.5);
@@ -307,8 +319,8 @@ const MortgageSection = ({ data, onChange }: Props) => {
                   <XAxis
                     dataKey="year"
                     stroke="hsl(215 20% 55%)"
-                    fontSize={11}
-                    label={{ value: "שנים", position: "insideBottomRight", offset: -5, fontSize: 11 }}
+                    height={42}
+                    tick={<DualYearTick />}
                   />
                   {/* ציר שמאל — יתרות ₪K */}
                   <YAxis
@@ -338,7 +350,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
                       name === "interest" ? "ריבית מצטברת" :
                       "תשלום חודשי כולל",
                     ]}
-                    labelFormatter={(l) => `שנה ${l}`}
+                    labelFormatter={(l) => `שנה ${l} (${THIS_YEAR + parseInt(l)})`}
                   />
                   <Legend
                     formatter={(v) =>
