@@ -14,7 +14,7 @@ const ADULT_OWNERS = [
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DATA_VERSION = "12";
+const DATA_VERSION = "13";
 
 // נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
 // נתוני מיכל מאלטשול (דוח שנתי 31/12/2025)
@@ -175,7 +175,81 @@ const DEFAULT_STUDY: FundEntry[] = [
   },
 ];
 
-const DEFAULT_MORTGAGE: MortgageData = { tracks: [] };
+// נתוני משכנתא מדוח בנק לאומי 06/04/2026 — 2 חשבונות, 6 מסלולים
+// סה"כ יתרה: ₪1,293,313 | תשלום חודשי: ₪6,526/חודש
+// ⚠️ מסלול 3: שינוי ריבית ב-10/04/2026 (עוד 4 ימים מתאריך הדוח!)
+const DEFAULT_MORTGAGE: MortgageData = {
+  tracks: [
+    {
+      id: "mortgage-track-1",
+      label: "פריים − 0.60%",
+      balance: 409074,
+      monthlyPayment: 2220,
+      interestRate: 4.90,
+      yearsRemaining: 25,
+      isIndexed: false,
+      rateFormula: "פריים − 0.60%",
+      nextRateChangeDate: undefined,
+    },
+    {
+      id: "mortgage-track-2",
+      label: "קבועה לא צמודה (70K)",
+      balance: 59922,
+      monthlyPayment: 330,
+      interestRate: 2.95,
+      yearsRemaining: 20,
+      isIndexed: false,
+      rateFormula: "2.95% קבוע",
+      nextRateChangeDate: undefined,
+    },
+    {
+      // ⚠️ דחוף: ריבית קבועה צמודה → פריים+3.5% ב-10/04/2026
+      // קנס פירעון מוקדם: כנראה 0 (ריבית שוק > ריבית מסלול)
+      id: "mortgage-track-3",
+      label: "קבועה צמודה → פריים+3.5%",
+      balance: 250299,
+      monthlyPayment: 1108,
+      interestRate: 2.44,
+      yearsRemaining: 25,
+      isIndexed: true,
+      rateFormula: 'עד 10/04/2026: 2.44%; אח"כ פריים+3.50%',
+      nextRateChangeDate: "2026-04-10",
+    },
+    {
+      id: "mortgage-track-4",
+      label: "קבועה צמודה",
+      balance: 197814,
+      monthlyPayment: 993,
+      interestRate: 1.95,
+      yearsRemaining: 20,
+      isIndexed: true,
+      rateFormula: "1.95% קבוע + מדד",
+      nextRateChangeDate: undefined,
+    },
+    {
+      id: "mortgage-track-5",
+      label: "פריים+3.5% (60 חודש)",
+      balance: 179314,
+      monthlyPayment: 790,
+      interestRate: 9.00,
+      yearsRemaining: 25,
+      isIndexed: true,
+      rateFormula: "פריים + 3.50%",
+      nextRateChangeDate: "2031-03-10",
+    },
+    {
+      id: "mortgage-track-6",
+      label: "קבועה לא צמודה (230K)",
+      balance: 196890,
+      monthlyPayment: 1085,
+      interestRate: 2.95,
+      yearsRemaining: 20,
+      isIndexed: false,
+      rateFormula: "2.95% קבוע",
+      nextRateChangeDate: undefined,
+    },
+  ],
+};
 const DEFAULT_EMERGENCY: EmergencyFundData = { balance: 12567, target: 70000, monthlyDeposit: 600, monthlyExpenses: 14000 };
 const DEFAULT_CHILD_SAVINGS: ChildSavingsData = {
   children: [

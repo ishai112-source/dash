@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Home, Plus, Trash2, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Home, Plus, Trash2, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
@@ -18,6 +21,17 @@ export interface MortgageTrack {
   monthlyPayment: number;
   interestRate: number;
   yearsRemaining: number;
+  isIndexed?: boolean;
+  rateFormula?: string;
+  nextRateChangeDate?: string;
+}
+
+function isWithinDays(isoDate: string | undefined, days: number): boolean {
+  if (!isoDate) return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const target = new Date(isoDate); target.setHours(0, 0, 0, 0);
+  const diffMs = target.getTime() - today.getTime();
+  return diffMs >= 0 && diffMs <= days * 24 * 60 * 60 * 1000;
 }
 
 export interface MortgageData {
@@ -94,6 +108,10 @@ const MortgageSection = ({ data, onChange }: Props) => {
   const totalMonthly = tracks.reduce((s, t) => s + t.monthlyPayment, 0);
   const chartData = buildChartData(tracks);
 
+  const WARN_DAYS = 90;
+  const tracksWithUpcomingChange = tracks.filter(t => isWithinDays(t.nextRateChangeDate, WARN_DAYS));
+  const hasUpcomingChange = tracksWithUpcomingChange.length > 0;
+
   // מחשבון מחזור
   const newMonthly = calcMonthlyPayment(totalBalance, refiRate, refiYears);
   const monthlySavings = totalMonthly - newMonthly;
@@ -117,7 +135,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
     });
   };
 
-  const updateTrack = (id: string, field: keyof MortgageTrack, value: string | number) => {
+  const updateTrack = (id: string, field: keyof MortgageTrack, value: string | number | boolean | undefined) => {
     onChange({ ...data, tracks: tracks.map((t) => (t.id === id ? { ...t, [field]: value } : t)) });
   };
 
@@ -144,12 +162,26 @@ const MortgageSection = ({ data, onChange }: Props) => {
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* התראת שינוי ריבית */}
+        {hasUpcomingChange && (
+          <Alert variant="destructive" className="mb-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {tracksWithUpcomingChange.map(t => (
+                <span key={t.id} className="block">
+                  ⚠️ מסלול <strong>{t.label}</strong> — שינוי ריבית ב-{new Date(t.nextRateChangeDate!).toLocaleDateString("he-IL")}
+                </span>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* מסלולים */}
         <div className="space-y-4">
           {tracks.map((track, idx) => (
             <div key={track.id} className="rounded-xl border border-border bg-muted/20 p-4 space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">מסלול {idx + 1}</span>
                   <Input
                     className="w-40 h-7 text-sm"
@@ -157,6 +189,11 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     onChange={(e) => updateTrack(track.id, "label", e.target.value)}
                     placeholder="שם המסלול"
                   />
+                  {isWithinDays(track.nextRateChangeDate, WARN_DAYS) && (
+                    <Badge variant="destructive" className="gap-1 shrink-0">
+                      <AlertTriangle className="h-3 w-3" />שינוי ריבית קרוב
+                    </Badge>
+                  )}
                 </div>
                 <Button
                   variant="ghost"
@@ -192,6 +229,38 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     value={track.yearsRemaining || ""}
                     onChange={(e) => updateTrack(track.id, "yearsRemaining", Math.max(0, Number(e.target.value)))}
                   />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground whitespace-nowrap">נוסחת ריבית</Label>
+                  <Input
+                    className="h-7 text-sm w-52"
+                    value={track.rateFormula ?? ""}
+                    onChange={e => updateTrack(track.id, "rateFormula", e.target.value)}
+                    placeholder='פריים − 0.60%'
+                    dir="rtl"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground whitespace-nowrap">שינוי ריבית הבא</Label>
+                  <Input
+                    type="date"
+                    className="h-7 text-sm w-36"
+                    value={track.nextRateChangeDate ?? ""}
+                    onChange={e => updateTrack(track.id, "nextRateChangeDate", e.target.value || undefined)}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id={`indexed-${track.id}`}
+                    checked={track.isIndexed ?? false}
+                    onCheckedChange={checked => updateTrack(track.id, "isIndexed", checked)}
+                  />
+                  <Label htmlFor={`indexed-${track.id}`} className="text-xs text-muted-foreground cursor-pointer">
+                    צמוד למדד
+                  </Label>
                 </div>
               </div>
             </div>
