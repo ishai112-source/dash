@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Home, Plus, Trash2, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
@@ -85,14 +85,26 @@ function buildChartData(tracks: MortgageTrack[]) {
   for (let year = 0; year <= maxYears; year++) {
     let totalRemaining = 0;
     let totalInterest = 0;
-    for (const proj of projections) {
+    let totalMonthly = 0;
+    for (let i = 0; i < activeTracks.length; i++) {
+      const track = activeTracks[i];
+      const proj = projections[i];
       const pt = proj.find((p) => p.year === year) ?? proj[proj.length - 1];
       if (pt) {
         totalRemaining += pt.remaining;
         totalInterest += pt.cumulativeInterest;
       }
+      // מסלול פעיל עדיין בשנה זו
+      if (year < track.yearsRemaining) {
+        totalMonthly += track.monthlyPayment;
+      }
     }
-    points.push({ year: `${year}`, remaining: Math.round(totalRemaining), interest: Math.round(totalInterest) });
+    points.push({
+      year: `${year}`,
+      remaining: Math.round(totalRemaining),
+      interest: Math.round(totalInterest),
+      monthlyPayment: Math.round(totalMonthly),
+    });
   }
   return points;
 }
@@ -278,9 +290,9 @@ const MortgageSection = ({ data, onChange }: Props) => {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
               מסלול פירעון — יתרת קרן וריבית מצטברת (כל המסלולים)
             </p>
-            <div className="h-64">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
+                <ComposedChart data={chartData}>
                   <defs>
                     <linearGradient id="gradRemaining" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(38 92% 50%)" stopOpacity={0.5} />
@@ -298,10 +310,20 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     fontSize={11}
                     label={{ value: "שנים", position: "insideBottomRight", offset: -5, fontSize: 11 }}
                   />
+                  {/* ציר שמאל — יתרות ₪K */}
                   <YAxis
+                    yAxisId="left"
                     stroke="hsl(215 20% 55%)"
                     fontSize={11}
                     tickFormatter={(v) => `₪${(v / 1000).toFixed(0)}K`}
+                  />
+                  {/* ציר ימין — תשלום חודשי ₪ */}
+                  <YAxis
+                    yAxisId="right"
+                    orientation="right"
+                    stroke="hsl(262 80% 65%)"
+                    fontSize={11}
+                    tickFormatter={(v) => `₪${(v / 1000).toFixed(1)}K`}
                   />
                   <Tooltip
                     contentStyle={{
@@ -312,14 +334,21 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     }}
                     formatter={(v: number, name: string) => [
                       formatCurrency(v),
-                      name === "remaining" ? "יתרת קרן" : "ריבית מצטברת",
+                      name === "remaining" ? "יתרת קרן" :
+                      name === "interest" ? "ריבית מצטברת" :
+                      "תשלום חודשי כולל",
                     ]}
                     labelFormatter={(l) => `שנה ${l}`}
                   />
                   <Legend
-                    formatter={(v) => (v === "remaining" ? "יתרת קרן" : "ריבית מצטברת")}
+                    formatter={(v) =>
+                      v === "remaining" ? "יתרת קרן" :
+                      v === "interest" ? "ריבית מצטברת" :
+                      "תשלום חודשי"
+                    }
                   />
                   <Area
+                    yAxisId="left"
                     type="monotone"
                     dataKey="interest"
                     stroke="hsl(0 72% 51%)"
@@ -327,13 +356,23 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     strokeWidth={2}
                   />
                   <Area
+                    yAxisId="left"
                     type="monotone"
                     dataKey="remaining"
                     stroke="hsl(38 92% 50%)"
                     fill="url(#gradRemaining)"
                     strokeWidth={2}
                   />
-                </AreaChart>
+                  <Line
+                    yAxisId="right"
+                    type="stepAfter"
+                    dataKey="monthlyPayment"
+                    stroke="hsl(262 80% 65%)"
+                    strokeWidth={2.5}
+                    dot={false}
+                    strokeDasharray="6 3"
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
