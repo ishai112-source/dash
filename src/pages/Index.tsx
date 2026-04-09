@@ -179,6 +179,7 @@ const DEFAULT_STUDY: FundEntry[] = [
 // סה"כ יתרה: ₪1,293,313 | תשלום חודשי: ₪6,526/חודש
 // ⚠️ מסלול 3: שינוי ריבית ב-10/04/2026 (עוד 4 ימים מתאריך הדוח!)
 const DEFAULT_MORTGAGE: MortgageData = {
+  mortgageStartYear: 2021,
   tracks: [
     {
       id: "mortgage-track-1",

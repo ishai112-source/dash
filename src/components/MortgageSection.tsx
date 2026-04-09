@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Home, Plus, Trash2, RefreshCw, ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import {
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer, Legend, ReferenceLine,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
 import FormattedNumberInput from "@/components/ui/FormattedNumberInput";
@@ -36,6 +36,7 @@ function isWithinDays(isoDate: string | undefined, days: number): boolean {
 
 export interface MortgageData {
   tracks: MortgageTrack[];
+  mortgageStartYear?: number;
 }
 
 interface Props {
@@ -74,52 +75,73 @@ function projectTrack(track: MortgageTrack): Array<{ year: number; remaining: nu
   return points;
 }
 
-function buildChartData(tracks: MortgageTrack[]) {
+// משחזר יתרת קרן היסטורית — פירוק אמורטיזציה לאחור
+function reconstructHistoricalBalance(
+  currentBalance: number,
+  monthlyPayment: number,
+  annualRate: number,
+  monthsBack: number
+): number {
+  const r = annualRate / 100 / 12;
+  let balance = currentBalance;
+  for (let m = 0; m < monthsBack; m++) {
+    balance = r === 0 ? balance + monthlyPayment : (balance + monthlyPayment) / (1 + r);
+  }
+  return balance;
+}
+
+function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
   const activeTracks = tracks.filter((t) => t.balance > 0 && t.yearsRemaining > 0 && t.monthlyPayment > 0);
-  if (activeTracks.length === 0) return [];
+  if (activeTracks.length === 0) return { points: [], todayYear: "" };
 
-  const maxYears = Math.max(...activeTracks.map((t) => t.yearsRemaining));
+  const currentYear = new Date().getFullYear();
+  const yearsElapsed = Math.max(0, currentYear - mortgageStartYear);
+  const maxFutureYears = Math.max(...activeTracks.map((t) => t.yearsRemaining));
+  const todayYear = `${currentYear}`;
+
+  const points: Array<{ year: string; remaining: number; interest?: number; monthlyPayment?: number }> = [];
+
+  // שנים היסטוריות (לפני היום) — שחזור לאחור מהיתרה הנוכחית
+  for (let yr = 0; yr < yearsElapsed; yr++) {
+    const monthsBack = (yearsElapsed - yr) * 12;
+    let totalRemaining = 0;
+    for (const track of activeTracks) {
+      totalRemaining += reconstructHistoricalBalance(track.balance, track.monthlyPayment, track.interestRate, monthsBack);
+    }
+    points.push({
+      year: `${mortgageStartYear + yr}`,
+      remaining: Math.round(Math.max(0, totalRemaining)),
+    });
+  }
+
+  // היום ואילך — חיזוי קדימה מהיתרה הנוכחית
   const projections = activeTracks.map(projectTrack);
-
-  const points = [];
-  for (let year = 0; year <= maxYears; year++) {
+  for (let futureYear = 0; futureYear <= maxFutureYears; futureYear++) {
     let totalRemaining = 0;
     let totalInterest = 0;
     let totalMonthly = 0;
     for (let i = 0; i < activeTracks.length; i++) {
       const track = activeTracks[i];
       const proj = projections[i];
-      const pt = proj.find((p) => p.year === year) ?? proj[proj.length - 1];
+      const pt = proj.find((p) => p.year === futureYear) ?? proj[proj.length - 1];
       if (pt) {
         totalRemaining += pt.remaining;
         totalInterest += pt.cumulativeInterest;
       }
-      // מסלול פעיל עדיין בשנה זו
-      if (year < track.yearsRemaining) {
+      if (futureYear < track.yearsRemaining) {
         totalMonthly += track.monthlyPayment;
       }
     }
     points.push({
-      year: `${year}`,
+      year: `${currentYear + futureYear}`,
       remaining: Math.round(totalRemaining),
       interest: Math.round(totalInterest),
       monthlyPayment: Math.round(totalMonthly),
     });
   }
-  return points;
-}
 
-// Tick מותאם אישית לציר X — שתי שורות: מספר שנה + שנה קלנדרית
-const THIS_YEAR = new Date().getFullYear();
-const DualYearTick = ({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) => {
-  const n = parseInt(payload?.value ?? "0");
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={13} textAnchor="middle" fontSize={10} fill="hsl(215 20% 55%)">{n}</text>
-      <text x={0} y={0} dy={25} textAnchor="middle" fontSize={9} fill="hsl(262 80% 55%)">{THIS_YEAR + n}</text>
-    </g>
-  );
-};
+  return { points, todayYear };
+}
 
 const MortgageSection = ({ data, onChange }: Props) => {
   const [showRefi, setShowRefi] = useState(false);
@@ -130,7 +152,8 @@ const MortgageSection = ({ data, onChange }: Props) => {
   const tracks = data.tracks ?? [];
   const totalBalance = tracks.reduce((s, t) => s + t.balance, 0);
   const totalMonthly = tracks.reduce((s, t) => s + t.monthlyPayment, 0);
-  const chartData = buildChartData(tracks);
+  const startYear = data.mortgageStartYear ?? 2021;
+  const { points: chartData, todayYear } = buildChartData(tracks, startYear);
 
   const WARN_DAYS = 90;
   const tracksWithUpcomingChange = tracks.filter(t => isWithinDays(t.nextRateChangeDate, WARN_DAYS));
@@ -297,7 +320,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
         </div>
 
         {/* גרף יתרה + ריבית מצטברת */}
-        {chartData.length > 1 && (
+        {chartData.length > 1 && todayYear && (
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
               מסלול פירעון — יתרת קרן וריבית מצטברת (כל המסלולים)
@@ -319,8 +342,9 @@ const MortgageSection = ({ data, onChange }: Props) => {
                   <XAxis
                     dataKey="year"
                     stroke="hsl(215 20% 55%)"
-                    height={42}
-                    tick={<DualYearTick />}
+                    fontSize={10}
+                    interval={4}
+                    tick={{ fill: "hsl(215 20% 55%)" }}
                   />
                   {/* ציר שמאל — יתרות ₪K */}
                   <YAxis
@@ -350,7 +374,7 @@ const MortgageSection = ({ data, onChange }: Props) => {
                       name === "interest" ? "ריבית מצטברת" :
                       "תשלום חודשי כולל",
                     ]}
-                    labelFormatter={(l) => `שנה ${l} (${THIS_YEAR + parseInt(l)})`}
+                    labelFormatter={(l) => String(l)}
                   />
                   <Legend
                     formatter={(v) =>
@@ -358,6 +382,13 @@ const MortgageSection = ({ data, onChange }: Props) => {
                       v === "interest" ? "ריבית מצטברת" :
                       "תשלום חודשי"
                     }
+                  />
+                  <ReferenceLine
+                    x={todayYear}
+                    yAxisId="left"
+                    stroke="hsl(142 70% 50%)"
+                    strokeDasharray="4 2"
+                    label={{ value: "היום", position: "insideTopLeft", fontSize: 10, fill: "hsl(142 70% 50%)" }}
                   />
                   <Area
                     yAxisId="left"
