@@ -90,6 +90,29 @@ function reconstructHistoricalBalance(
   return balance;
 }
 
+// מחשב ריבית מצטברת היסטורית — מריץ אמורטיזציה קדימה מהיתרה המשוחזרת
+function projectHistoricalInterest(
+  startBalance: number,
+  monthlyPayment: number,
+  annualRate: number,
+  years: number
+): Array<{ year: number; cumulativeInterest: number }> {
+  const r = annualRate / 100 / 12;
+  let balance = startBalance;
+  let cumulativeInterest = 0;
+  const points = [{ year: 0, cumulativeInterest: 0 }];
+  for (let year = 1; year <= years && balance > 0; year++) {
+    for (let m = 0; m < 12 && balance > 0; m++) {
+      const interest = r === 0 ? 0 : balance * r;
+      const principalPaid = Math.min(balance, monthlyPayment - interest);
+      cumulativeInterest += interest;
+      balance = Math.max(0, balance - Math.max(0, principalPaid));
+    }
+    points.push({ year, cumulativeInterest: Math.round(cumulativeInterest) });
+  }
+  return points;
+}
+
 function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
   const activeTracks = tracks.filter((t) => t.balance > 0 && t.yearsRemaining > 0 && t.monthlyPayment > 0);
   if (activeTracks.length === 0) return { points: [], todayYear: "" };
@@ -101,20 +124,39 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
 
   const points: Array<{ year: string; remaining: number; interest?: number; monthlyPayment?: number }> = [];
 
-  // שנים היסטוריות (לפני היום) — שחזור לאחור מהיתרה הנוכחית
+  // חישוב ריבית היסטורית לכל מסלול — משחזר יתרה מקורית ומריץ אמורטיזציה קדימה
+  const historicalProjections = activeTracks.map(track => {
+    const originalBalance = reconstructHistoricalBalance(
+      track.balance, track.monthlyPayment, track.interestRate, yearsElapsed * 12
+    );
+    return projectHistoricalInterest(originalBalance, track.monthlyPayment, track.interestRate, yearsElapsed);
+  });
+
+  // סה"כ ריבית ששולמה מ-mortgageStartYear עד היום
+  const totalHistoricalInterestPaid = historicalProjections.reduce((sum, proj) => {
+    return sum + (proj[proj.length - 1]?.cumulativeInterest ?? 0);
+  }, 0);
+
+  // שנים היסטוריות (לפני היום) — שחזור יתרה + ריבית מצטברת
   for (let yr = 0; yr < yearsElapsed; yr++) {
     const monthsBack = (yearsElapsed - yr) * 12;
     let totalRemaining = 0;
-    for (const track of activeTracks) {
+    let totalHistInterest = 0;
+    for (let i = 0; i < activeTracks.length; i++) {
+      const track = activeTracks[i];
       totalRemaining += reconstructHistoricalBalance(track.balance, track.monthlyPayment, track.interestRate, monthsBack);
+      const pt = historicalProjections[i].find(p => p.year === yr)
+              ?? historicalProjections[i][historicalProjections[i].length - 1];
+      totalHistInterest += pt?.cumulativeInterest ?? 0;
     }
     points.push({
       year: `${mortgageStartYear + yr}`,
       remaining: Math.round(Math.max(0, totalRemaining)),
+      interest: Math.round(totalHistInterest),
     });
   }
 
-  // היום ואילך — חיזוי קדימה מהיתרה הנוכחית
+  // היום ואילך — חיזוי קדימה + offset ריבית היסטורית
   const projections = activeTracks.map(projectTrack);
   for (let futureYear = 0; futureYear <= maxFutureYears; futureYear++) {
     let totalRemaining = 0;
@@ -135,7 +177,7 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
     points.push({
       year: `${currentYear + futureYear}`,
       remaining: Math.round(totalRemaining),
-      interest: Math.round(totalInterest),
+      interest: Math.round(totalInterest + totalHistoricalInterestPaid),
       monthlyPayment: Math.round(totalMonthly),
     });
   }
