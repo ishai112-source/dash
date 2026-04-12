@@ -14,7 +14,7 @@ const ADULT_OWNERS = [
 
 const sumBalance = (entries: FundEntry[]) => entries.reduce((s, e) => s + e.balance, 0);
 
-const DATA_VERSION = "13";
+const DATA_VERSION = "14";
 
 // נתוני ישי מהמסלקה הפנסיונית (SwiftNess 17/03/2026)
 // נתוני מיכל מאלטשול (דוח שנתי 31/12/2025)
@@ -175,16 +175,16 @@ const DEFAULT_STUDY: FundEntry[] = [
   },
 ];
 
-// נתוני משכנתא מדוח בנק לאומי 06/04/2026 — 2 חשבונות, 6 מסלולים
-// סה"כ יתרה: ₪1,293,313 | תשלום חודשי: ₪6,526/חודש
-// ⚠️ מסלול 3: שינוי ריבית ב-10/04/2026 (עוד 4 ימים מתאריך הדוח!)
+// נתוני משכנתא מדוח בנק לאומי 09/04/2026 — 2 חשבונות, 6 מסלולים
+// סה"כ יתרה: ₪1,293,720 | תשלום חודשי: ₪6,526/חודש
+// ⚠️ מסלול 3: שינוי ריבית ב-10/04/2026 (עוד יום אחד מתאריך הדוח!)
 const DEFAULT_MORTGAGE: MortgageData = {
   mortgageStartYear: 2021,
   tracks: [
     {
       id: "mortgage-track-1",
       label: "פריים − 0.60%",
-      balance: 409074,
+      balance: 409239,
       monthlyPayment: 2220,
       interestRate: 4.90,
       yearsRemaining: 25,
@@ -195,7 +195,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
     {
       id: "mortgage-track-2",
       label: "קבועה לא צמודה (70K)",
-      balance: 59922,
+      balance: 59937,
       monthlyPayment: 330,
       interestRate: 2.95,
       yearsRemaining: 20,
@@ -208,7 +208,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
       // קנס פירעון מוקדם: כנראה 0 (ריבית שוק > ריבית מסלול)
       id: "mortgage-track-3",
       label: "קבועה צמודה → פריים+3.5%",
-      balance: 250299,
+      balance: 250371,
       monthlyPayment: 1108,
       interestRate: 2.44,
       yearsRemaining: 25,
@@ -219,7 +219,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
     {
       id: "mortgage-track-4",
       label: "קבועה צמודה",
-      balance: 197814,
+      balance: 197846,
       monthlyPayment: 993,
       interestRate: 1.95,
       yearsRemaining: 20,
@@ -230,7 +230,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
     {
       id: "mortgage-track-5",
       label: "פריים+3.5% (60 חודש)",
-      balance: 179314,
+      balance: 179390,
       monthlyPayment: 790,
       interestRate: 9.00,
       yearsRemaining: 25,
@@ -241,7 +241,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
     {
       id: "mortgage-track-6",
       label: "קבועה לא צמודה (230K)",
-      balance: 196890,
+      balance: 196938,
       monthlyPayment: 1085,
       interestRate: 2.95,
       yearsRemaining: 20,
