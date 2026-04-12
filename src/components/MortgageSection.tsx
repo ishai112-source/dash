@@ -137,7 +137,10 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
     return sum + (proj[proj.length - 1]?.cumulativeInterest ?? 0);
   }, 0);
 
-  // שנים היסטוריות (לפני היום) — שחזור יתרה + ריבית מצטברת
+  // סה"כ תשלום חודשי כאשר כל המסלולים פעילים (מצב ב-2021)
+  const fullMonthlyPayment = activeTracks.reduce((s, t) => s + t.monthlyPayment, 0);
+
+  // שנים היסטוריות (לפני היום) — שחזור יתרה + ריבית מצטברת + תשלום חודשי
   for (let yr = 0; yr < yearsElapsed; yr++) {
     const monthsBack = (yearsElapsed - yr) * 12;
     let totalRemaining = 0;
@@ -153,6 +156,8 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
       year: `${mortgageStartYear + yr}`,
       remaining: Math.round(Math.max(0, totalRemaining)),
       interest: Math.round(totalHistInterest),
+      // כל המסלולים היו פעילים מ-2021 — תשלום חודשי מלא
+      monthlyPayment: Math.round(fullMonthlyPayment),
     });
   }
 
