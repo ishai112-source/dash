@@ -215,6 +215,7 @@ const DEFAULT_MORTGAGE: MortgageData = {
       isIndexed: true,
       rateFormula: 'עד 10/04/2026: 2.44%; אח"כ פריים+3.50%',
       nextRateChangeDate: "2026-04-10",
+      newInterestRate: 9.0, // פריים (5.5%) + 3.5% — לחישוב התשלום החדש בגרף
     },
     {
       id: "mortgage-track-4",

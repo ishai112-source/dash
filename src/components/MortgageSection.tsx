@@ -24,6 +24,7 @@ export interface MortgageTrack {
   isIndexed?: boolean;
   rateFormula?: string;
   nextRateChangeDate?: string;
+  newInterestRate?: number; // ריבית אחרי שינוי (אם ידוע)
 }
 
 function isWithinDays(isoDate: string | undefined, days: number): boolean {
@@ -137,36 +138,50 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
     return sum + (proj[proj.length - 1]?.cumulativeInterest ?? 0);
   }, 0);
 
-  // סה"כ תשלום חודשי כאשר כל המסלולים פעילים (מצב ב-2021)
-  const fullMonthlyPayment = activeTracks.reduce((s, t) => s + t.monthlyPayment, 0);
+  // תשלום חודשי עתידי אחרי שינוי ריבית — מחושב לפי יתרה נוכחית + ריבית חדשה
+  const rateChangeInfo = activeTracks.map(track => {
+    if (track.newInterestRate && track.nextRateChangeDate) {
+      return {
+        changeYear: new Date(track.nextRateChangeDate).getFullYear(),
+        newPayment: calcMonthlyPayment(track.balance, track.newInterestRate, track.yearsRemaining),
+      };
+    }
+    return null;
+  });
 
-  // שנים היסטוריות (לפני היום) — שחזור יתרה + ריבית מצטברת + תשלום חודשי
+  // שנים היסטוריות (לפני היום) — יתרה + ריבית + תשלום חודשי לפי יתרה מקורית
   for (let yr = 0; yr < yearsElapsed; yr++) {
     const monthsBack = (yearsElapsed - yr) * 12;
+    const totalYearsForTrack = (track: MortgageTrack) => yearsElapsed + track.yearsRemaining;
     let totalRemaining = 0;
     let totalHistInterest = 0;
+    let totalHistMonthly = 0;
     for (let i = 0; i < activeTracks.length; i++) {
       const track = activeTracks[i];
-      totalRemaining += reconstructHistoricalBalance(track.balance, track.monthlyPayment, track.interestRate, monthsBack);
+      const histBalance = reconstructHistoricalBalance(track.balance, track.monthlyPayment, track.interestRate, monthsBack);
+      totalRemaining += histBalance;
       const pt = historicalProjections[i].find(p => p.year === yr)
               ?? historicalProjections[i][historicalProjections[i].length - 1];
       totalHistInterest += pt?.cumulativeInterest ?? 0;
+      // תשלום חודשי לפי יתרה ומשך שנותרו בשנה ההיסטורית
+      const yearsLeft = totalYearsForTrack(track) - yr;
+      totalHistMonthly += calcMonthlyPayment(Math.max(0, histBalance), track.interestRate, yearsLeft);
     }
     points.push({
       year: `${mortgageStartYear + yr}`,
       remaining: Math.round(Math.max(0, totalRemaining)),
       interest: Math.round(totalHistInterest),
-      // כל המסלולים היו פעילים מ-2021 — תשלום חודשי מלא
-      monthlyPayment: Math.round(fullMonthlyPayment),
+      monthlyPayment: Math.round(totalHistMonthly),
     });
   }
 
-  // היום ואילך — חיזוי קדימה + offset ריבית היסטורית
+  // היום ואילך — חיזוי קדימה + offset ריבית היסטורית + קפיצת שינוי ריבית
   const projections = activeTracks.map(projectTrack);
   for (let futureYear = 0; futureYear <= maxFutureYears; futureYear++) {
     let totalRemaining = 0;
     let totalInterest = 0;
     let totalMonthly = 0;
+    const calendarYear = currentYear + futureYear;
     for (let i = 0; i < activeTracks.length; i++) {
       const track = activeTracks[i];
       const proj = projections[i];
@@ -176,11 +191,17 @@ function buildChartData(tracks: MortgageTrack[], mortgageStartYear: number) {
         totalInterest += pt.cumulativeInterest;
       }
       if (futureYear < track.yearsRemaining) {
-        totalMonthly += track.monthlyPayment;
+        const rc = rateChangeInfo[i];
+        // אחרי שינוי ריבית — השתמש בתשלום המחושב מהריבית החדשה
+        if (rc && calendarYear >= rc.changeYear) {
+          totalMonthly += rc.newPayment;
+        } else {
+          totalMonthly += track.monthlyPayment;
+        }
       }
     }
     points.push({
-      year: `${currentYear + futureYear}`,
+      year: `${calendarYear}`,
       remaining: Math.round(totalRemaining),
       interest: Math.round(totalInterest + totalHistoricalInterestPaid),
       monthlyPayment: Math.round(totalMonthly),
@@ -346,6 +367,18 @@ const MortgageSection = ({ data, onChange }: Props) => {
                     onChange={e => updateTrack(track.id, "nextRateChangeDate", e.target.value || undefined)}
                   />
                 </div>
+                {track.nextRateChangeDate && (
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">ריבית חדשה %</Label>
+                    <Input
+                      type="number" min="0" step="0.01"
+                      className="h-7 text-sm w-20"
+                      value={track.newInterestRate ?? ""}
+                      onChange={e => updateTrack(track.id, "newInterestRate", e.target.value ? Math.max(0, Number(e.target.value)) : undefined)}
+                      placeholder="9.00"
+                    />
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
                   <Switch
                     id={`indexed-${track.id}`}
